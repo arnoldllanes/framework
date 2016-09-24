@@ -2,88 +2,92 @@
 
 /**
  * Router
+ *
+ * PHP version 5.4
  */
-class Router {
-	/**
-	 * Associative array of routes (the routing table)
-	 * @var array
-	 */
-	protected $routes = [];
+class Router
+{
 
-	/**
-	 *  Parameters from the matched route
-	 * @var array
-	 */
-	protected $params = [];
+    /**
+     * Associative array of routes (the routing table)
+     * @var array
+     */
+    protected $routes = [];
 
-	/**
-	 * Add a route to the routing table
-	 *
-	 * @param string $route The routeURL
-	 * @param array $params Parameters (controller, action, etc.)
-	 *
-	 * @return void
-	 */
-	public function add($route, $params = [])
-	{
-		// Convert the reoute to a regular expression: escape forward slashes
-		$route = preg_replace('/\//','\\/', $route);
-		
-		// Convert variables e.g. {controller}
-		$route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z]+)', $route);
+    /**
+     * Parameters from the matched route
+     * @var array
+     */
+    protected $params = [];
 
-		// Add start and end delimiters , and case insensitive flag
-		$route = '/^' . $route . '$/i';
+    /**
+     * Add a route to the routing table
+     *
+     * @param string $route  The route URL
+     * @param array  $params Parameters (controller, action, etc.)
+     *
+     * @return void
+     */
+    public function add($route, $params = [])
+    {
+        // Convert the route to a regular expression: escape forward slashes
+        $route = preg_replace('/\//', '\\/', $route);
 
-		$this->routes[$route] = $params;
+        // Convert variables e.g. {controller}
+        $route = preg_replace('/\{([a-z]+)\}/', '(?P<\1>[a-z-]+)', $route);
 
-	}
+        // Convert variables with custom regular expressions e.g. {id:\d+}
+        $route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
 
-	/**
-	 * Get all the routes from the routing table
-	 * @return array
-	 */
-	public function getRoutes()
-	{
-		return $this->routes;
-	}
+        // Add start and end delimiters, and case insensitive flag
+        $route = '/^' . $route . '$/i';
 
-	/**
-	 * Match the route to the routes in the routing table, setting the $params property
-	 * if a route is found.
-	 * 
-	 * @param strin $url The route URL
-	 *
-	 * @return boolean true if a match found, otherwise return false
-	 */
-	public function match($url)
-	{
-		//MAtch to the fixed URL format /controller/action
-		//$reg_exp = "/^(?P<controller>[a-z-]+)\/(?P<action>[a-z-]+)$/";
+        $this->routes[$route] = $params;
+    }
 
-			foreach($this->routes as $route => $params) {
-				if(preg_match($route, $url, $matches)) {
-					//Get named capture group values
-					//$params = [];
-					foreach($matches as $key => $match){
-						if(is_string($key)) {
-							$params[$key] = $match;
-						}
-					}
-					$this->params = $params;
-					return true;
-				}
-			}
-		return false;
-	}
+    /**
+     * Get all the routes from the routing table
+     *
+     * @return array
+     */
+    public function getRoutes()
+    {
+        return $this->routes;
+    }
 
-	/**
-	 * Get the currently matched parameters 
-	 *
-	 * @return array
-	 */
-	public function getParams()
-	{
-		return $this->params;
-	}
+    /**
+     * Match the route to the routes in the routing table, setting the $params
+     * property if a route is found.
+     *
+     * @param string $url The route URL
+     *
+     * @return boolean  true if a match found, false otherwise
+     */
+    public function match($url)
+    {
+        foreach ($this->routes as $route => $params) {
+            if (preg_match($route, $url, $matches)) {
+                foreach ($matches as $key => $match) {
+                    if (is_string($key)) {
+                        $params[$key] = $match;
+                    }
+                }
+
+                $this->params = $params;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the currently matched parameters
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
 }
